@@ -747,6 +747,9 @@ function getGenParams() {
 function formatMessageContent(content) {
     if (!content) return '';
     
+    // 🔥 DÉSÉCHAPPE LES BALISES HTML (problème GitHub Pages)
+    content = content.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    
     // 🔥 NETTOYAGE DES RAISONNEMENTS EN CLAIR (avant tout)
     let cleanContent = content;
     
@@ -783,7 +786,7 @@ function formatMessageContent(content) {
     // Échappe le HTML
     let formatted = escapeHtml(processed);
     
-    // Remplace les blocs de code
+    // Remplace les blocs de code (maintenant avec les bonnes balises)
     formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
         return `<pre><code class="language-${lang || 'plaintext'}">${code}</code></pre>`;
     });
