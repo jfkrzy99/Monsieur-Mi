@@ -747,8 +747,9 @@ function getGenParams() {
 function formatMessageContent(content) {
     if (!content) return '';
     
-    // 1. NETTOYAGE DES RAISONNEMENTS EN CLAIR
     let cleanContent = content;
+    
+    // Nettoyage des raisonnements
     cleanContent = cleanContent.replace(/Here's a thinking process:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
     cleanContent = cleanContent.replace(/Analyze user input:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
     cleanContent = cleanContent.replace(/Draft construction:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
@@ -767,7 +768,6 @@ function formatMessageContent(content) {
         return escapeHtml(cleaned.trim());
     }
     
-    // 2. EXTRAIRE LES BLOCS THINK
     let thinkBlocks = [];
     let processed = cleanContent.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
         const index = thinkBlocks.length;
@@ -775,18 +775,16 @@ function formatMessageContent(content) {
         return `%%THINK_${index}%%`;
     });
     
-    // 3. ÉCHAPPER LE TEXTE EN PREMIER (Sécurité)
+    // On échappe le texte pour la sécurité
     let formatted = escapeHtml(processed);
     
-    // 4. CRÉER LES BLOCS DE CODE APRÈS (Pour que le HTML reste du vrai HTML)
-    // On utilise un outil temporaire pour déséchapper uniquement les blocs de code créés
+    // On crée les blocs de code en VRAI HTML pour que Prism les lise
     formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        // On nettoie le code au cas où il aurait été altéré par escapeHtml
+        // On redonne les vrais < et > uniquement au code de programmation
         let cleanCode = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         return `<pre><code class="language-${lang || 'plaintext'}">${cleanCode}</code></pre>`;
     });
     
-    // 5. REMETTRE LES BLOCS THINK EN VRAI HTML
     thinkBlocks.forEach((thinkContent, i) => {
         const escapedThink = escapeHtml(thinkContent);
         formatted = formatted.replace(`%%THINK_${i}%%`, 
@@ -797,7 +795,6 @@ function formatMessageContent(content) {
         );
     });
     
-    // 6. GÉRER LES RETOURS À LA LIGNE
     let finalResult = '';
     let parts = formatted.split(/(<pre>[\s\S]*?<\/pre>)/g);
     for (let part of parts) {
