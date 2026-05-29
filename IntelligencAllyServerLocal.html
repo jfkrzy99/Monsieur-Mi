@@ -747,13 +747,8 @@ function getGenParams() {
 function formatMessageContent(content) {
     if (!content) return '';
     
-    // 🔥 DÉSÉCHAPPE LES BALISES HTML (problème GitHub Pages)
-    content = content.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    
-    // 🔥 NETTOYAGE DES RAISONNEMENTS EN CLAIR (avant tout)
+    // 1. NETTOYAGE DES RAISONNEMENTS EN CLAIR
     let cleanContent = content;
-    
-    // Supprime les blocs de raisonnement en anglais (sans balises)
     cleanContent = cleanContent.replace(/Here's a thinking process:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
     cleanContent = cleanContent.replace(/Analyze user input:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
     cleanContent = cleanContent.replace(/Draft construction:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
@@ -761,21 +756,18 @@ function formatMessageContent(content) {
     cleanContent = cleanContent.replace(/Determine Response Goals:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
     cleanContent = cleanContent.replace(/Language:.*$/gm, '');
     cleanContent = cleanContent.replace(/Tone:.*$/gm, '');
-    cleanContent = cleanContent.replace(/^[\s-]+$/gm, ''); // lignes de tirets
-    
-    // Nettoie les lignes vides en trop
+    cleanContent = cleanContent.replace(/^[\s-]+$/gm, '');
     cleanContent = cleanContent.replace(/\n{3,}/g, '\n\n');
     
     const thinkMode = document.getElementById('thinkToggle')?.checked ?? true;
     
     if (!thinkMode) {
-        // Supprime toutes les balises think
         let cleaned = cleanContent.replace(/<think>[\s\S]*?<\/think>/g, '');
         cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
         return escapeHtml(cleaned.trim());
     }
     
-    // Mode think ON : affiche joliment les balises think
+    // 2. EXTRAIRE LES BLOCS THINK
     let thinkBlocks = [];
     let processed = cleanContent.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
         const index = thinkBlocks.length;
@@ -783,15 +775,18 @@ function formatMessageContent(content) {
         return `%%THINK_${index}%%`;
     });
     
-    // Échappe le HTML
+    // 3. ÉCHAPPER LE TEXTE EN PREMIER (Sécurité)
     let formatted = escapeHtml(processed);
     
-    // Remplace les blocs de code (maintenant avec les bonnes balises)
+    // 4. CRÉER LES BLOCS DE CODE APRÈS (Pour que le HTML reste du vrai HTML)
+    // On utilise un outil temporaire pour déséchapper uniquement les blocs de code créés
     formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        return `<pre><code class="language-${lang || 'plaintext'}">${code}</code></pre>`;
+        // On nettoie le code au cas où il aurait été altéré par escapeHtml
+        let cleanCode = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        return `<pre><code class="language-${lang || 'plaintext'}">${cleanCode}</code></pre>`;
     });
     
-    // Remet les blocs think
+    // 5. REMETTRE LES BLOCS THINK EN VRAI HTML
     thinkBlocks.forEach((thinkContent, i) => {
         const escapedThink = escapeHtml(thinkContent);
         formatted = formatted.replace(`%%THINK_${i}%%`, 
@@ -802,7 +797,7 @@ function formatMessageContent(content) {
         );
     });
     
-    // Gère les retours à la ligne (sans casser les <pre>)
+    // 6. GÉRER LES RETOURS À LA LIGNE
     let finalResult = '';
     let parts = formatted.split(/(<pre>[\s\S]*?<\/pre>)/g);
     for (let part of parts) {
@@ -815,6 +810,7 @@ function formatMessageContent(content) {
     
     return finalResult;
 }
+
 
         // ---------- Appel API au serveur (avec streaming supporté) ----------
         async function sendToServer(messages, onToken) {
