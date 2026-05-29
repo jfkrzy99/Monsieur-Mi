@@ -1287,7 +1287,7 @@ document.getElementById('thinkToggle')?.addEventListener('change', () => {
         refreshModels();
         
         // Refresh connection status periodically
-        setInterval(testConnection, 30000);
+        setInterval(testConnection, 60000);
         const systemPromptInput = document.getElementById('systemPromptInput');
         if (systemPromptInput) {
             systemPromptInput.addEventListener('input', function() {
@@ -1299,4 +1299,20 @@ document.getElementById('thinkToggle')?.addEventListener('change', () => {
         }
     </script>
 </body>
+    <!-- Moteur de couleur forcé pour GitHub Pages -->
+<script src="https://cloudflare.com"></script>
+<script src="https://cloudflare.com"></script>
+<script>
+    // Cette fonction surveille l'écran et force les couleurs dès que Monsieur Mi écrit
+    const observer = new MutationObserver(() => {
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    });
+    
+    // Lance la surveillance sur votre zone de chat
+    const chatContainer = document.getElementById('chatMessagesDiv') || document.body;
+    observer.observe(chatContainer, { childList: true, subtree: true });
+</script>
+
 </html>
