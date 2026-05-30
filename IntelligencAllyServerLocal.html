@@ -193,7 +193,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #06030f;
+            background: #0b051b;
         }
 
         .chat-header {
@@ -293,7 +293,7 @@
         .input-area {
             padding: 16px;
             border-top: 1px solid #000000;
-            background: #000000;
+            background: #040205;
         }
 
         .input-container {
@@ -579,7 +579,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #000000;
+    background: #040205;
     transition: margin-left 0.3s ease;
     min-width: 0;  /* Important pour le flex */
 }
@@ -1444,26 +1444,21 @@ let ttsEnabled = false;
 // Charger les voix disponibles depuis le serveur
 async function loadVoices() {
     try {
-        console.log("Chargement des voix...");
         const response = await fetch(`http://192.168.137.5:5005/voices`);
-        
         if (response.ok) {
             const voices = await response.json();
-            console.log("Voix reçues:", voices);
-            
             const voiceSelect = document.getElementById('voiceSelect');
             voiceSelect.innerHTML = '';
             
             voices.forEach(voice => {
                 const option = document.createElement('option');
-                option.value = voice.path;
+                // ⚠️ IMPORTANT: on stocke le filename, pas le chemin complet
+                option.value = voice.filename;
                 option.textContent = voice.isDefault ? `🎤 ${voice.name}` : voice.name;
                 voiceSelect.appendChild(option);
             });
             
             console.log(`${voices.length} voix chargées`);
-        } else {
-            console.log("Erreur HTTP:", response.status);
         }
     } catch(e) {
         console.log("Erreur chargement voix:", e);
@@ -1481,16 +1476,11 @@ async function speakText(text) {
         formData.append('emotion_intensity', emotionIntensitySlider.value);
         formData.append('voice_stability', voiceStabilitySlider.value);
         
-        // Si une voix personnalisée est sélectionnée
-        if (voiceSelect.value !== 'default') {
-            try {
-                const voiceResponse = await fetch(voiceSelect.value);
-                const voiceBlob = await voiceResponse.blob();
-                formData.append('ref', voiceBlob, 'voice.mp3');
-            } catch(e) {
-                console.log("Impossible de charger la voix personnalisée");
-            }
-        }
+        // === NOUVEAU : Envoyer juste le nom du fichier ===
+        const selectedVoice = voiceSelect.value;
+        formData.append('voice_filename', selectedVoice);
+        
+        console.log("🎤 Voix sélectionnée:", selectedVoice);
         
         const response = await fetch(`http://192.168.137.5:5005/speak`, {
             method: 'POST',
@@ -1502,6 +1492,8 @@ async function speakText(text) {
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
             audio.play();
+        } else {
+            console.log("Erreur TTS:", response.status);
         }
     } catch(e) {
         console.log("Erreur TTS:", e);
