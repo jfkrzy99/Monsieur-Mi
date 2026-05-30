@@ -747,59 +747,58 @@ function getGenParams() {
 function formatMessageContent(content) {
     if (!content) return '';
     
-    let cleanContent = content;
-    
-    // Nettoyage des raisonnements
-    cleanContent = cleanContent.replace(/Here's a thinking process:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
-    cleanContent = cleanContent.replace(/Analyze user input:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
-    cleanContent = cleanContent.replace(/Draft construction:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
-    cleanContent = cleanContent.replace(/Check constraints:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
-    cleanContent = cleanContent.replace(/Determine Response Goals:[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi, '');
-    cleanContent = cleanContent.replace(/Language:.*$/gm, '');
-    cleanContent = cleanContent.replace(/Tone:.*$/gm, '');
-    cleanContent = cleanContent.replace(/^[\s-]+$/gm, '');
-    cleanContent = cleanContent.replace(/\n{3,}/g, '\n\n');
-    
     const thinkMode = document.getElementById('thinkToggle')?.checked ?? true;
     
+    // Nettoie d'abord tout le HTML dangereux
+    let cleanContent = content;
+    
     if (!thinkMode) {
-        let cleaned = cleanContent.replace(/<think>[\s\S]*?<\/think>/g, '');
-        cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
-        return escapeHtml(cleaned.trim());
+        // Supprime toutes les balises think
+        cleanContent = cleanContent.replace(/<think>[\s\S]*?<\/think>/g, '');
+        // Nettoie les lignes vides en trop
+        cleanContent = cleanContent.replace(/\n{3,}/g, '\n\n');
     }
     
+    // 1. Extrait et préserve les balises think (si mode ON)
     let thinkBlocks = [];
-    let processed = cleanContent.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
-        const index = thinkBlocks.length;
-        thinkBlocks.push(thinkContent.trim());
-        return `%%THINK_${index}%%`;
-    });
+    if (thinkMode) {
+        cleanContent = cleanContent.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
+            const index = thinkBlocks.length;
+            thinkBlocks.push(thinkContent.trim());
+            return `%%THINK_${index}%%`;
+        });
+    }
     
-    // On échappe le texte pour la sécurité
-    let formatted = escapeHtml(processed);
+    // 2. Échappe le HTML
+    let formatted = escapeHtml(cleanContent);
     
-    // On crée les blocs de code en VRAI HTML pour que Prism les lise
+    // 3. Remplace les blocs de code par des versions highlightées
     formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-        // On redonne les vrais < et > uniquement au code de programmation
-        let cleanCode = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-        return `<pre><code class="language-${lang || 'plaintext'}">${cleanCode}</code></pre>`;
+        // Important : on garde les retours à la ligne avec \n
+        return `<pre><code class="language-${lang || 'plaintext'}">${code}</code></pre>`;
     });
     
-    thinkBlocks.forEach((thinkContent, i) => {
-        const escapedThink = escapeHtml(thinkContent);
-        formatted = formatted.replace(`%%THINK_${i}%%`, 
-            `<div class="think-block">
-                <div class="think-label">🧠 Réflexion interne de Monsieur Mi :</div>
-                ${escapedThink}
-            </div>`
-        );
-    });
+    // 4. Remet les blocs think à leur place (si mode ON)
+    if (thinkMode) {
+        thinkBlocks.forEach((thinkContent, i) => {
+            const escapedThink = escapeHtml(thinkContent);
+            formatted = formatted.replace(`%%THINK_${i}%%`, 
+                `<div class="think-block">
+                    <div class="think-label">🧠 Réflexion interne de Monsieur Mi :</div>
+                    ${escapedThink}
+                </div>`
+            );
+        });
+    }
     
+    // 5. NE PAS remplacer les \n dans les blocs de code !
+    // On remplace seulement les \n en dehors des <pre>
+    // Version simplifiée :
     let finalResult = '';
     let parts = formatted.split(/(<pre>[\s\S]*?<\/pre>)/g);
     for (let part of parts) {
         if (part.startsWith('<pre>')) {
-            finalResult += part;
+            finalResult += part;  // Garde les <pre> intacts
         } else {
             finalResult += part.replace(/\n/g, '<br>');
         }
