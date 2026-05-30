@@ -1302,17 +1302,5 @@ document.getElementById('thinkToggle')?.addEventListener('change', () => {
     <!-- Moteur de couleur forcé pour GitHub Pages -->
 <script src="https://cloudflare.com"></script>
 <script src="https://cloudflare.com"></script>
-<script>
-    // Cette fonction surveille l'écran et force les couleurs dès que Monsieur Mi écrit
-    const observer = new MutationObserver(() => {
-        if (typeof Prism !== 'undefined') {
-            Prism.highlightAll();
-        }
-    });
-    
-    // Lance la surveillance sur votre zone de chat
-    const chatContainer = document.getElementById('chatMessagesDiv') || document.body;
-    observer.observe(chatContainer, { childList: true, subtree: true });
-</script>
 
 </html>
