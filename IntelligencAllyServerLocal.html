@@ -581,6 +581,7 @@
     flex-direction: column;
     background: #000000;
     transition: margin-left 0.3s ease;
+    min-width: 0;  /* Important pour le flex */
 }
 
 .sidebar {
@@ -590,7 +591,70 @@
 .main {
     z-index: 1;
 }
+/* Right Sidebar pour TTS */
+.sidebar-right {
+    width: 260px;
+    background: #040405;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease, overflow 0s linear 0.3s;
+    overflow-x: clip;
+    overflow-y: auto;
+    position: relative;
+    z-index: 100;
+    border-left: 1px solid #1a1a22;
+}
 
+.sidebar-right.collapsed {
+    width: 48px;
+    min-width: 48px;
+    overflow: hidden;
+}
+
+.sidebar-right.collapsed .tts-panel {
+    display: none;
+}
+
+.sidebar-right.collapsed .sidebar-toggle-right {
+    transform: rotate(180deg);
+}
+
+/* Bouton toggle droit */
+.sidebar-toggle-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 16px;
+    height: 48px;
+    background: #0e2c6b;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+    transition: all 0.2s ease;
+    z-index: 9999;
+    opacity: 0.7;
+}
+
+.sidebar-toggle-right:hover {
+    opacity: 1;
+    width: 20px;
+    background: #071040;
+}
+
+.tts-panel {
+    padding: 16px;
+    margin-top: 50px;
+}
+
+.tts-panel h3 {
+    text-align: center;
+}
 
     </style>
 
@@ -701,7 +765,51 @@
             <div class="status" id="status">✅ Prêt</div>
         </div>
     </div>
-
+<!-- Right Sidebar pour TTS -->
+<div class="sidebar-right" id="sidebarRight">
+    <button class="sidebar-toggle-right" id="sidebarToggleRight" title="Ouvrir/Fermer TTS">▶</button>
+<div class="tts-panel">
+    <h3>🎤 OpenVoice TTS</h3>
+    
+    <div class="setting-group">
+        <label class="setting-label">🎚️ Activer la voix</label>
+        <label class="toggle-switch">
+            <input type="checkbox" id="ttsEnableToggle">
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+    
+    <div class="setting-group">
+        <label class="setting-label">🎤 Voix à cloner</label>
+        <select id="voiceSelect" class="model-select">
+            <option value="default">Voix par défaut (Alicia)</option>
+        </select>
+    </div>
+    
+    <div class="setting-group">
+        <label class="setting-label">🎚️ Hauteur (pitch)</label>
+        <input type="range" id="pitchShift" min="-0.5" max="0.5" step="0.05" value="0">
+        <span id="pitchValue" style="color:#acacbe">0</span>
+    </div>
+    
+    <div class="setting-group">
+        <label class="setting-label">💖 Intensité émotionnelle</label>
+        <input type="range" id="emotionIntensity" min="0" max="1" step="0.1" value="0.5">
+        <span id="emotionValue" style="color:#acacbe">0.5</span>
+    </div>
+    
+    <div class="setting-group">
+        <label class="setting-label">🎯 Stabilité de la voix</label>
+        <input type="range" id="voiceStability" min="0.1" max="1" step="0.1" value="0.7">
+        <span id="stabilityValue" style="color:#acacbe">0.7</span>
+    </div>
+    
+    <button id="testTtsBtn" class="new-chat-btn" style="background:#0d3c14">
+        🔊 Tester
+    </button>
+</div>
+    </div>
+</div>
     <script>
         // ---------- État ----------
         let conversations = [];
@@ -1130,6 +1238,8 @@ function renderMessages() {
             let fullResponse = '';
             const messageElement = chatMessagesDiv.lastChild;
             const contentDiv = messageElement.querySelector('.message-content');
+
+
             
             try {
                 // Tentative streaming d'abord
@@ -1154,6 +1264,11 @@ function renderMessages() {
                         }
                     }
                 }
+
+                // Après avoir mis à jour le contenu du message
+if (ttsEnabled && fullResponse) {
+    speakText(fullResponse);
+}
                 
                 saveAll();
                 statusDiv.textContent = '✅ Terminé';
@@ -1212,7 +1327,20 @@ function renderMessages() {
                 connectionStatus.style.color = '#ff6b6b';
             }
         }
+// Right sidebar toggle
+const sidebarRight = document.getElementById('sidebarRight');
+const sidebarToggleRight = document.getElementById('sidebarToggleRight');
 
+const rightSidebarState = localStorage.getItem('MonsieurMi_sidebarRightCollapsed');
+if (rightSidebarState === 'true') {
+    sidebarRight.classList.add('collapsed');
+}
+
+sidebarToggleRight.addEventListener('click', () => {
+    sidebarRight.classList.toggle('collapsed');
+    const isCollapsed = sidebarRight.classList.contains('collapsed');
+    localStorage.setItem('MonsieurMi_sidebarRightCollapsed', isCollapsed);
+});
         // Sidebar toggle
 const sidebar = document.querySelector('.sidebar');
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -1297,6 +1425,116 @@ document.getElementById('thinkToggle')?.addEventListener('change', () => {
            const saved = localStorage.getItem('systemPrompt');
            if (saved) systemPromptInput.value = saved;
         }
+
+
+
+// ========== TTS VOICE SYSTEM ==========
+const ttsEnableToggle = document.getElementById('ttsEnableToggle');
+const pitchShiftSlider = document.getElementById('pitchShift');
+const pitchValue = document.getElementById('pitchValue');
+const emotionIntensitySlider = document.getElementById('emotionIntensity');
+const emotionValue = document.getElementById('emotionValue');
+const voiceStabilitySlider = document.getElementById('voiceStability');
+const stabilityValue = document.getElementById('stabilityValue');
+const testTtsBtn = document.getElementById('testTtsBtn');
+const voiceSelect = document.getElementById('voiceSelect');
+
+let ttsEnabled = false;
+
+// Charger les voix disponibles depuis le serveur
+async function loadVoices() {
+    try {
+        console.log("Chargement des voix...");
+        const response = await fetch(`http://192.168.137.5:5005/voices`);
+        
+        if (response.ok) {
+            const voices = await response.json();
+            console.log("Voix reçues:", voices);
+            
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            voices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.path;
+                option.textContent = voice.isDefault ? `🎤 ${voice.name}` : voice.name;
+                voiceSelect.appendChild(option);
+            });
+            
+            console.log(`${voices.length} voix chargées`);
+        } else {
+            console.log("Erreur HTTP:", response.status);
+        }
+    } catch(e) {
+        console.log("Erreur chargement voix:", e);
+    }
+}
+
+// Synthèse vocale
+async function speakText(text) {
+    if (!ttsEnabled) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('text', text);
+        formData.append('pitch_shift', pitchShiftSlider.value);
+        formData.append('emotion_intensity', emotionIntensitySlider.value);
+        formData.append('voice_stability', voiceStabilitySlider.value);
+        
+        // Si une voix personnalisée est sélectionnée
+        if (voiceSelect.value !== 'default') {
+            try {
+                const voiceResponse = await fetch(voiceSelect.value);
+                const voiceBlob = await voiceResponse.blob();
+                formData.append('ref', voiceBlob, 'voice.mp3');
+            } catch(e) {
+                console.log("Impossible de charger la voix personnalisée");
+            }
+        }
+        
+        const response = await fetch(`http://192.168.137.5:5005/speak`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        }
+    } catch(e) {
+        console.log("Erreur TTS:", e);
+    }
+}
+
+// Afficher les valeurs des sliders
+pitchShiftSlider.addEventListener('input', () => {
+    pitchValue.textContent = pitchShiftSlider.value;
+});
+emotionIntensitySlider.addEventListener('input', () => {
+    emotionValue.textContent = emotionIntensitySlider.value;
+});
+voiceStabilitySlider.addEventListener('input', () => {
+    stabilityValue.textContent = voiceStabilitySlider.value;
+});
+
+// Activer/désactiver TTS
+ttsEnableToggle.addEventListener('change', () => {
+    ttsEnabled = ttsEnableToggle.checked;
+});
+
+// Tester la voix
+testTtsBtn.addEventListener('click', () => {
+    speakText("Bonjour, je suis la voix de Monsieur Mi. Test réussi !");
+});
+
+// Charger les voix au démarrage
+loadVoices();
+
+// Optionnel : Lire automatiquement les réponses de l'assistant
+// À ajouter dans sendMessage() après avoir reçu la réponse
+
     </script>
 </body>
     <!-- Moteur de couleur forcé pour GitHub Pages -->
