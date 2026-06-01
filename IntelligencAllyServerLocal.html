@@ -813,12 +813,15 @@
     <script>
         // ---------- État ----------
         let conversations = [];
-        let currentChatId = null;
+        
         let isGenerating = false;
 
         // Paramètres par défaut
         let currentModel = "josiefied-qwen3-30b";
         let serverBaseUrl = "https://jubilance-generic-thinner.ngrok-free.dev";
+
+        // ========== AJOUTER DANS LA SECTION "ÉTAT" ==========
+        let currentChatId = localStorage.getItem('current_chat_id') || null;
 
         // DOM Elements
         const chatMessagesDiv = document.getElementById('chatMessages');
@@ -1051,6 +1054,71 @@ function formatMessageContent(content) {
             throw new Error(data.response || "Erreur inconnue");
         }
 
+        // ========== NOUVELLE FONCTION: GESTION DES CHATS ==========
+
+async function createNewChatOnServer() {
+    try {
+        const response = await fetch(`${serverBaseUrl}/chat/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            currentChatId = data.chat_id;
+            localStorage.setItem('current_chat_id', currentChatId);
+            
+            // Créer la conversation locale
+            conversations.unshift({
+                id: currentChatId,
+                title: 'Nouvelle conversation',
+                messages: []
+            });
+            
+            renderHistory();
+            renderMessages();
+            saveAll();
+            return currentChatId;
+        }
+    } catch (e) {
+        console.error("Erreur création chat:", e);
+        // Fallback: générer ID local
+        currentChatId = Date.now().toString();
+        localStorage.setItem('current_chat_id', currentChatId);
+        return currentChatId;
+    }
+}
+
+async function loadChatFromServer(chatId) {
+    try {
+        const response = await fetch(`${serverBaseUrl}/chat/load`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            return data.messages;
+        }
+    } catch (e) {
+        console.error("Erreur chargement chat:", e);
+    }
+    return null;
+}
+
+async function saveChatToServer(chatId, messages) {
+    try {
+        await fetch(`${serverBaseUrl}/chat/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, messages: messages })
+        });
+    } catch (e) {
+        console.error("Erreur sauvegarde chat:", e);
+    }
+}
+
+
         // ---------- Gestion localStorage ----------
         function saveAll() {
             localStorage.setItem('IA_conversations', JSON.stringify(conversations));
@@ -1065,41 +1133,48 @@ function formatMessageContent(content) {
             }));
         }
 
-        function loadAll() {
-            const savedConv = localStorage.getItem('IA_conversations');
-            if (savedConv) conversations = JSON.parse(savedConv);
-            /*
-            if (conversations.length === 0) {
-                conversations = [{
-                    id: Date.now().toString(),
-                    title: 'Bienvenue',
-                    messages: [{
-                        role: 'assistant',
-                        //content: 'Bienvenue sur IntelligenceAlly !\n\nJe suis connecté à ton serveur local. Quel modèle veux-tu utiliser ?\n\nModèles disponibles:\n• josiefied-qwen3-30b\n• Mina-Lambda\n• DolphinMistral8x7b\n• Mistral-7b\n• Open-Qwen3.5-27B\n• Open-Qwen3.6-35B-moe'
-                        
-                    }]
-                }];
+// ========== MODIFIER loadAll() ==========
+function loadAll() {
+    const savedConv = localStorage.getItem('IA_conversations');
+    if (savedConv) conversations = JSON.parse(savedConv);
+    
+    if (conversations.length === 0) {
+        // Créer une conversation par défaut
+        conversations = [{
+            id: Date.now().toString(),
+            title: '🎩 Monsieur Mi',
+            messages: [{
+                role: 'assistant',
+                content: '🎩 Je ne fais pas de bruit quand j\'arrive.\n\nPourtant, me voilà. Je suis Monsieur Mi.'
+            }]
+        }];
+        currentChatId = conversations[0].id;
+        // Sauvegarder sur serveur en arrière-plan
+        saveChatToServer(currentChatId, conversations[0].messages);
+    }
+    
+    const savedId = localStorage.getItem('IA_currentChat');
+    if (savedId && conversations.find(c => c.id === savedId)) {
+        currentChatId = savedId;
+    } else {
+        currentChatId = conversations[0].id;
+    }
+    
+    // Mettre à jour localStorage
+    localStorage.setItem('current_chat_id', currentChatId);
+    
+    // Charger depuis serveur en arrière-plan
+    loadChatFromServer(currentChatId).then(serverMessages => {
+        if (serverMessages && serverMessages.length > 0) {
+            const chat = conversations.find(c => c.id === currentChatId);
+            if (chat && chat.messages.length !== serverMessages.length) {
+                chat.messages = serverMessages;
+                renderMessages();
+                saveAll();
             }
-            */
-            if (conversations.length === 0) {
-                conversations = [{
-                    id: Date.now().toString(),
-                    title: '🎩 Monsieur Mi',
-                    messages: [{
-                        role: 'assistant',
-                        content: '🎩 Je ne fais pas de bruit quand j\'arrive.\n\nPourtant, me voilà. Je suis Monsieur Mi.'
-                    }]
-                }];
-            }
-
-
-
-            const savedId = localStorage.getItem('IA_currentChat');
-            if (savedId && conversations.find(c => c.id === savedId)) {
-                currentChatId = savedId;
-            } else {
-                currentChatId = conversations[0].id;
-            }
+        }
+    });
+    
             
             const savedUrl = localStorage.getItem('IA_serverUrl');
             if (savedUrl) {
@@ -1124,18 +1199,25 @@ function formatMessageContent(content) {
             }
         }
 
-        function createNewChat() {
-            const newId = Date.now().toString();
-            conversations.unshift({
-                id: newId,
-                title: 'Nouvelle conversation',
-                messages: []
-            });
-            currentChatId = newId;
-            renderHistory();
-            renderMessages();
-            saveAll();
-        }
+// ========== MODIFIER createNewChat() ==========
+async function createNewChat() {
+    const newId = await createNewChatOnServer();
+    
+    // Mettre à jour la liste locale
+    const existingIndex = conversations.findIndex(c => c.id === newId);
+    if (existingIndex === -1) {
+        conversations.unshift({
+            id: newId,
+            title: 'Nouvelle conversation',
+            messages: []
+        });
+    }
+    
+    currentChatId = newId;
+    renderHistory();
+    renderMessages();
+    saveAll();
+}
 
         function deleteChat(chatId) {
             if (confirm('Supprimer cette conversation ?')) {
@@ -1213,79 +1295,136 @@ function renderMessages() {
     }
 }
 
-        async function sendMessage() {
-            if (isGenerating) return;
-            const text = messageInput.value.trim();
-            if (!text) return;
+// ========== MODIFIER sendMessage() ==========
+async function sendMessage() {
+    if (isGenerating) return;
+    const text = messageInput.value.trim();
+    if (!text) return;
+    
+    // S'assurer qu'on a un chat_id
+    if (!currentChatId) {
+        await createNewChatOnServer();
+    }
+    
+    let chat = conversations.find(c => c.id === currentChatId);
+    if (!chat) {
+        await createNewChatOnServer();
+        chat = conversations.find(c => c.id === currentChatId);
+    }
+    
+    // Ajouter message utilisateur
+    chat.messages.push({ role: 'user', content: text });
+    renderMessages();
+    saveAll();
+    
+    // Sauvegarder sur serveur
+    await saveChatToServer(currentChatId, chat.messages);
+    
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+    
+    isGenerating = true;
+    sendBtn.disabled = true;
+    statusDiv.textContent = '🎯 Génération en cours...';
+    
+    const assistantMsgIndex = chat.messages.length;
+    chat.messages.push({ role: 'assistant', content: '⏱ ' });
+    renderMessages();
+    
+    let fullResponse = '';
+    const messageElement = chatMessagesDiv.lastChild;
+    const contentDiv = messageElement.querySelector('.message-content');
+    
+    try {
+        // ========== MODIFIER L'APPEL API POUR INCLURE chat_id ==========
+        let streamWorked = false;
+        
+        // Construire l'historique sans le dernier message (celui en cours)
+        const historyForPrompt = chat.messages.slice(0, -1);
+        
+        const response = await fetch(`${serverBaseUrl}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: currentChatId,  // ← AJOUTER CECI
+                message: text,
+                model: currentModel,
+                stream: true,
+                system_prompt: localStorage.getItem('systemPrompt') || '',
+                conversation_history: historyForPrompt.map(m => ({ role: m.role, content: m.content })),
+                ...getGenParams()
+            })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // Lecture du stream SSE
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
             
-            const chat = conversations.find(c => c.id === currentChatId);
-            if (!chat) return;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
             
-            chat.messages.push({ role: 'user', content: text });
-            renderMessages();
-            saveAll();
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            
-            isGenerating = true;
-            sendBtn.disabled = true;
-            statusDiv.textContent = '🎯 Génération en cours...';
-            
-            const assistantMsgIndex = chat.messages.length;
-            chat.messages.push({ role: 'assistant', content: '⏱ ' });
-            renderMessages();
-            
-            let fullResponse = '';
-            const messageElement = chatMessagesDiv.lastChild;
-            const contentDiv = messageElement.querySelector('.message-content');
-
-
-            
-            try {
-                // Tentative streaming d'abord
-                let streamWorked = false;
-                try {
-                    await sendToServer(chat.messages.slice(0, -1), (token) => {
-                        streamWorked = true;
-                        fullResponse += token;
-                        chat.messages[assistantMsgIndex].content = fullResponse;
-                        if (contentDiv) {
-                            contentDiv.innerHTML = formatMessageContent(fullResponse);
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    try {
+                        const json = JSON.parse(data);
+                        if (json.chat_id) {
+                            // Mettre à jour le chat_id si le serveur en donne un nouveau
+                            if (json.chat_id !== currentChatId) {
+                                currentChatId = json.chat_id;
+                                localStorage.setItem('current_chat_id', currentChatId);
+                                chat.id = currentChatId;
+                            }
                         }
-                        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-                    });
-                } catch (streamError) {
-                    console.log("Streaming failed, fallback to batch:", streamError);
-                    if (!streamWorked) {
-                        fullResponse = await sendToServerBatch(chat.messages.slice(0, -1));
-                        chat.messages[assistantMsgIndex].content = fullResponse;
-                        if (contentDiv) {
-                            contentDiv.innerHTML = formatMessageContent(fullResponse);
+                        if (json.token) {
+                            streamWorked = true;
+                            fullResponse += json.token;
+                            chat.messages[assistantMsgIndex].content = fullResponse;
+                            if (contentDiv) {
+                                contentDiv.innerHTML = formatMessageContent(fullResponse);
+                            }
+                            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
                         }
+                        if (json.done) break;
+                    } catch (e) {
+                        // Ignorer
                     }
                 }
-
-                // Après avoir mis à jour le contenu du message
-if (ttsEnabled && fullResponse) {
-    speakText(fullResponse);
-}
-                
-                saveAll();
-                statusDiv.textContent = '✅ Terminé';
-            } catch (error) {
-                console.error(error);
-                chat.messages[assistantMsgIndex].content = `❌ **Erreur**: ${error.message}\n\nVérifie que ton serveur tourne sur ${serverBaseUrl}`;
-                if (contentDiv) {
-                    contentDiv.innerHTML = formatMessageContent(chat.messages[assistantMsgIndex].content);
-                }
-                statusDiv.textContent = '❌ Erreur de connexion';
-            } finally {
-                isGenerating = false;
-                sendBtn.disabled = false;
-                messageInput.focus();
-                saveAll();
             }
         }
+        
+        // Sauvegarder la réponse complète
+        await saveChatToServer(currentChatId, chat.messages);
+        
+        if (ttsEnabled && fullResponse) {
+            speakText(fullResponse);
+        }
+        
+        saveAll();
+        statusDiv.textContent = '✅ Terminé';
+    } catch (error) {
+        console.error(error);
+        chat.messages[assistantMsgIndex].content = `❌ **Erreur**: ${error.message}`;
+        if (contentDiv) {
+            contentDiv.innerHTML = formatMessageContent(chat.messages[assistantMsgIndex].content);
+        }
+        statusDiv.textContent = '❌ Erreur de connexion';
+    } finally {
+        isGenerating = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+        saveAll();
+    }
+}
+
 
         async function refreshModels() {
             try {
