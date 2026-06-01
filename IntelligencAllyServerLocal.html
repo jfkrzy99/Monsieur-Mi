@@ -684,18 +684,19 @@
                 <label class="setting-label">🌐 URL du serveur</label>
                 <input type="text" class="server-url" id="serverUrl" value="http://192.168.137.5:159">
             </div>
-            <div class="setting-group">
-                <label class="setting-label">🎨 Modèle</label>
-                <select class="model-select" id="modelSelect">
-                    <option value="josiefied-qwen3-30b">Josiefied Qwen3 30B</option>
-                    <option value="Mina-Lambda">Mina-Lambda</option>
-                   
-                    <option value="Mistral-7b">Mistral 7B</option>
-                    <option value="Open-Qwen3.5-27B">Open Qwen3.5 27B</option>
-                    <option value="Open-Qwen3.6-35B-moe">Open Qwen3.6 35B MoE</option>
-                </select>
-                <button class="refresh-models" id="refreshModelsBtn">↻ Rafraîchir la liste</button>
-            </div>
+            
+ <!-- Au lieu du select, affichez juste l'info du modèle verrouillé -->
+<div class="setting-group">
+    <label class="setting-label">🎨 Modèle actif</label>
+    <div style="background:#2a2b32; padding:8px; border-radius:6px; color:#10a37f; font-size:12px;">
+        🔒 <span id="lockedModelName">Chargement...</span> (verrouillé par l'admin)
+    </div>
+    <!-- Cachez ou supprimez le select -->
+    <select class="model-select" id="modelSelect" style="display:none;">
+        <option value="josiefied-qwen3-30b">Josiefied Qwen3 30B</option>
+    </select>
+    <button class="refresh-models" id="refreshModelsBtn" style="display:none;">↻ Rafraîchir</button>
+</div>
 
 
             <div class="setting-group">
@@ -811,6 +812,48 @@
     </div>
 </div>
     <script>
+
+// ========== RÉCUPÉRER LA CONFIGURATION SERVEUR ==========
+let lockedModel = null;
+let serverConfig = {};
+
+async function loadServerConfig() {
+    try {
+        // Essayer de récupérer le modèle actif du serveur
+        const response = await fetch(`${serverBaseUrl}/status`);
+        if (response.ok) {
+            const status = await response.json();
+            if (status.model_name) {
+                lockedModel = status.model_name;
+                document.getElementById('lockedModelName').innerText = lockedModel;
+                currentModel = lockedModel;  // Forcer le modèle
+                currentModelBadge.textContent = `🎨 🔒 ${lockedModel}`;
+                console.log(`🔒 Modèle verrouillé: ${lockedModel}`);
+            }
+        }
+    } catch (e) {
+        console.log("Impossible de récupérer la config serveur", e);
+        document.getElementById('lockedModelName').innerText = "Serveur non connecté";
+    }
+}
+
+// Désactiver le changement de modèle
+function disableModelSelection() {
+    // Cacher ou désactiver le select
+    const modelSelect = document.getElementById('modelSelect');
+    if (modelSelect) {
+        modelSelect.disabled = true;
+        modelSelect.style.opacity = '0.5';
+    }
+    
+    // Cacher le bouton refresh models
+    const refreshBtn = document.getElementById('refreshModelsBtn');
+    if (refreshBtn) {
+        refreshBtn.style.display = 'none';
+    }
+}
+
+
         // ---------- État ----------
         let conversations = [];
         
@@ -1182,12 +1225,18 @@ function loadAll() {
                 serverUrlInput.value = savedUrl;
             }
             
-            const savedModel = localStorage.getItem('IA_model');
-            if (savedModel) {
-                currentModel = savedModel;
-                modelSelect.value = savedModel;
-                currentModelBadge.textContent = `🎨 ${savedModel}`;
-            }
+  // Dans loadAll(), modifiez la partie modèle :
+
+const savedModel = localStorage.getItem('IA_model');
+if (savedModel && !lockedModel) {
+    // Utiliser le modèle sauvegardé SEULEMENT si pas de verrou
+    currentModel = savedModel;
+} else if (lockedModel) {
+    currentModel = lockedModel;  // ← FORCER le modèle verrouillé
+}
+
+// Modifier l'affichage du badge
+currentModelBadge.textContent = `🎨 🔒 ${currentModel}`;
             
             const savedParams = localStorage.getItem('IA_params');
             if (savedParams) {
@@ -1342,19 +1391,20 @@ async function sendMessage() {
         // Construire l'historique sans le dernier message (celui en cours)
         const historyForPrompt = chat.messages.slice(0, -1);
         
-        const response = await fetch(`${serverBaseUrl}/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: currentChatId,  // ← AJOUTER CECI
-                message: text,
-                model: currentModel,
-                stream: true,
-                system_prompt: localStorage.getItem('systemPrompt') || '',
-                conversation_history: historyForPrompt.map(m => ({ role: m.role, content: m.content })),
-                ...getGenParams()
-            })
-        });
+// Dans sendMessage(), modifiez le payload :
+const response = await fetch(`${serverBaseUrl}/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        chat_id: currentChatId,
+        message: text,
+        // model: currentModel,  ← COMMENTEZ OU SUPPRIMEZ CETTE LIGNE
+        stream: true,
+        system_prompt: localStorage.getItem('systemPrompt') || '',
+        conversation_history: historyForPrompt.map(m => ({ role: m.role, content: m.content })),
+        ...getGenParams()
+    })
+});
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -1551,6 +1601,8 @@ document.getElementById('thinkToggle')?.addEventListener('change', () => {
         renderHistory();
         renderMessages();
         testConnection();
+        loadServerConfig();  // ← AJOUTER CETTE LIGNE
+disableModelSelection();  // ← AJOUTER CETTE LIGNE
         refreshModels();
         
         // Refresh connection status periodically
