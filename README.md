@@ -20,12 +20,12 @@
             padding: 2rem;
         }
         .card {
-            max-width: 950px;
+            max-width: 1000px;
             width: 100%;
             background: rgba(25, 20, 23, 0.88);
             backdrop-filter: blur(2px);
             border-radius: 2rem;
-            padding: 2rem 2rem;
+            padding: 2rem;
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(230, 200, 180, 0.1);
             border: 1px solid rgba(210, 180, 140, 0.25);
         }
@@ -45,13 +45,13 @@
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
         .sub {
             text-align: center;
             color: #bfa98e;
-            font-size: 0.9rem;
-            margin-bottom: 1.8rem;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
             border-bottom: 1px dashed #4f3e33;
             display: inline-block;
             width: auto;
@@ -59,14 +59,41 @@
             margin-right: auto;
             padding-bottom: 0.5rem;
         }
+        
+        /* Onglets bilingues */
+        .lang-tabs {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .lang-btn {
+            background: #2f2a27;
+            border: 1px solid #b48c54;
+            color: #ecd9c6;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: #b48c54;
+            color: #1e1a1f;
+            border-color: #b48c54;
+        }
+        .lang-btn:hover {
+            background: #3e3530;
+        }
+        
         .legal-wrapper {
             max-height: 420px;
             overflow-y: auto;
-            padding-right: 0.8rem;
+            padding-right: 0.5rem;
             margin-bottom: 1.5rem;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 1.2rem;
-            padding: 1rem 1rem 1rem 1.2rem;
+            padding: 1rem;
             border: 1px solid rgba(210, 180, 140, 0.2);
         }
         .legal-text {
@@ -74,12 +101,10 @@
             line-height: 1.5;
             color: #e2d4c6;
         }
-        .legal-text strong {
+        .legal-text strong, .legal-text h3 {
             color: #e7cba5;
-            font-weight: 600;
         }
         .legal-text h3 {
-            color: #f0ddc4;
             font-size: 1rem;
             margin: 1rem 0 0.3rem 0;
             font-weight: 500;
@@ -87,6 +112,13 @@
         .legal-text p {
             margin-bottom: 0.75rem;
         }
+        .legal-fr, .legal-en {
+            transition: display 0.2s;
+        }
+        .legal-fr.hide, .legal-en.hide {
+            display: none;
+        }
+        
         .intro-message {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 1rem;
@@ -94,18 +126,18 @@
             margin-bottom: 1.5rem;
             border-left: 3px solid #c7a56b;
         }
-        .fr, .en {
+        .intro-fr, .intro-en {
             font-size: 0.9rem;
         }
-        .fr {
+        .intro-fr {
             color: #ecd9c6;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
-        .en {
+        .intro-en {
             color: #d1bfae;
-            font-style: normal;
             font-size: 0.85rem;
         }
+        
         .btn-wrapper {
             text-align: center;
             margin: 1rem 0 0.5rem;
@@ -141,19 +173,19 @@
             padding-top: 1rem;
             font-weight: 300;
         }
+        .warning-refuse {
+            font-size: 0.75rem;
+            color: #d99e6b;
+            text-align: center;
+            margin-top: 0.8rem;
+        }
         hr {
             border: none;
             height: 1px;
             background: #4a3a2e;
             margin: 0.6rem 0;
         }
-        .warning-refuse {
-            font-size: 0.8rem;
-            color: #d99e6b;
-            text-align: center;
-            margin-top: 0.8rem;
-        }
-        @media (max-width: 650px) {
+        @media (max-width: 700px) {
             .card { padding: 1.5rem; }
             h1 { font-size: 1.9rem; }
             .legal-wrapper { max-height: 350px; }
@@ -161,31 +193,39 @@
     </style>
 </head>
 <body>
-<div class="card" id="acceptance-card">
+<div class="card">
     <div class="hat">🎩</div>
     <h1>Monsieur Mi</h1>
     <div style="text-align: center;">
-        <div class="sub">— esprit local, accès protégé —</div>
+        <div class="sub">— esprit local / local spirit —</div>
     </div>
 
+    <!-- Sélecteur de langue -->
+    <div class="lang-tabs">
+        <button class="lang-btn active" id="btnFr">🇫🇷 Français</button>
+        <button class="lang-btn" id="btnEn">🇬🇧 English</button>
+    </div>
+
+    <!-- Message d'intro bilingue -->
     <div class="intro-message">
-        <div class="fr">
+        <div class="intro-fr" id="introFr">
             ✦ Monsieur Mi est un automate local, non censuré, expérimental.<br>
             Avant de lui parler, vous devez accepter les conditions légales ci-dessous.
         </div>
-        <div class="en">
+        <div class="intro-en" id="introEn" style="display: none;">
             ✦ Monsieur Mi is a local, uncensored, experimental AI.<br>
             Before speaking with him, you must accept the legal terms below.
         </div>
     </div>
 
-    <!-- Zone juridique complète (valeur légale Québec/Canada) -->
+    <!-- Zone juridique complète BILINGUE -->
     <div class="legal-wrapper">
-        <div class="legal-text">
+        <!-- Version française -->
+        <div class="legal-text legal-fr" id="legalFr">
             <strong>CONDITIONS D'UTILISATION ET EXCLUSION DE RESPONSABILITÉ</strong><br><br>
 
             <strong>1. Acceptation des conditions</strong><br>
-            En cliquant sur « J'accepte et j'accède au site », vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes conditions. Si vous n'acceptez pas ces règles, vous devez quitter ce site immédiatement.<br><br>
+            En cliquant sur « J'accepte et j'accède au site » (ou "I accept and enter the site"), vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes conditions. Si vous n'acceptez pas ces règles, vous devez quitter ce site immédiatement.<br><br>
 
             <strong>2. Nature du service et absence de garantie</strong><br>
             Ce service de clavardage automatisé (chatbot) est basé sur un modèle d'intelligence artificielle expérimental et non censuré.<br>
@@ -206,41 +246,95 @@
             — <strong>Enregistrement des conversations</strong> : Les conversations peuvent être enregistrées pour des raisons techniques ou de maintenance du serveur. L'exploitant ne peut garantir la confidentialité absolue des données saisies.<br><br>
 
             <strong>6. Droit applicable</strong><br>
-            Les présentes conditions sont régies et interprétées conformément aux lois de la province de Québec et aux lois du Canada qui s'y appliquent. Tout litige relatif à l'utilisation de ce site sera soumis à la compétence exclusive des tribunaux du district judiciaire de Terrebonne (ou de votre région).
+            Les présentes conditions sont régies et interprétées conformément aux lois de la province de Québec et aux lois du Canada qui s'y appliquent. Tout litige relatif à l'utilisation de ce site sera soumis à la compétence exclusive des tribunaux du district judiciaire de Terrebonne (Mirabel, Québec).
+        </div>
+
+        <!-- Version anglaise (traduction juridique complète) -->
+        <div class="legal-text legal-en" id="legalEn" style="display: none;">
+            <strong>TERMS OF USE AND DISCLAIMER</strong><br><br>
+
+            <strong>1. Acceptance of Terms</strong><br>
+            By clicking "I accept and enter the site", you acknowledge that you have read, understood, and accepted these terms in their entirety. If you do not accept these rules, you must leave this site immediately.<br><br>
+
+            <strong>2. Nature of Service and No Warranty</strong><br>
+            This automated chat service (chatbot) is based on an experimental and uncensored artificial intelligence model.<br>
+            — <strong>Entertainment only</strong> : This robot is provided solely for entertainment and technological research purposes.<br>
+            — <strong>Errors and hallucinations</strong> : The AI may generate false, inaccurate, misleading, offensive, inappropriate, or defamatory responses. The site operator does not validate machine-generated content.<br>
+            — <strong>No professional advice</strong> : Responses do not constitute medical, legal, financial, psychological, or professional advice. Do not make any decisions based on the robot's statements.<br><br>
+
+            <strong>3. Strict Limitation of Liability</strong><br>
+            Under applicable laws (including the province of Quebec and Canada), the site operator shall not be held liable for any direct, indirect, incidental, or moral damages (including, but not limited to, data loss, financial losses, or reputational harm) arising from the use of this chatbot or reliance on its responses. You use this service entirely at your own risk.<br><br>
+
+            <strong>4. User Obligations</strong><br>
+            By using this service, you agree to:<br>
+            — Not attempt to force the robot to generate illegal content (hate, violence, child exploitation, weapon manufacturing, cyberattacks).<br>
+            — Not distribute, publish, or publicly share the robot's responses if they violate others' rights or the law.<br><br>
+
+            <strong>5. Privacy and Confidentiality</strong><br>
+            — <strong>Do not share personal data</strong> : You must not enter any confidential, identifying, or sensitive information (name, address, social insurance number, banking data, trade secrets) into the chat.<br>
+            — <strong>Conversation logging</strong> : Conversations may be recorded for technical or server maintenance reasons. The operator cannot guarantee absolute confidentiality of entered data.<br><br>
+
+            <strong>6. Applicable Law</strong><br>
+            These terms are governed by and construed in accordance with the laws of the province of Quebec and applicable Canadian laws. Any dispute relating to the use of this site shall be submitted to the exclusive jurisdiction of the courts of the judicial district of Terrebonne (Mirabel, Quebec).
         </div>
     </div>
 
     <div class="btn-wrapper">
-        <button id="acceptBtn" class="btn-accept">📜 J'accepte et j'accède au site</button>
+        <button id="acceptBtn" class="btn-accept">📜 J'accepte et j'accède au site / I accept and enter</button>
     </div>
     <div class="warning-refuse">
-        ⚠️ En refusant, vous ne pourrez pas accéder au chatbot.
+        ⚠️ En refusant, vous ne pourrez pas accéder au chatbot.<br>
+        ⚠️ If you refuse, you cannot access the chatbot.
     </div>
     <div class="footer">
-        Hébergé localement — Mirabel, Québec — Valeur légale complète
+        Hébergé localement — Mirabel, Québec — Valeur légale complète / Full legal value
     </div>
 </div>
 
 <script>
-    // Vérifier si l'utilisateur a déjà accepté pendant cette session (onglet ouvert)
-    const hasAccepted = sessionStorage.getItem('monsieur_mi_consent');
-    const targetChatPage = "IntelligencAllyServerLocal.html";  // votre page chatbot existante
-
-    if (hasAccepted === 'true') {
-        // Redirection immédiate vers le chatbot
+    // === CONFIGURATION ===
+    const targetChatPage = "IntelligencAllyServerLocal.html";  // votre page chatbot
+    
+    // Vérifier si l'utilisateur a déjà accepté pendant cette session
+    if (sessionStorage.getItem('monsieur_mi_consent') === 'true') {
         window.location.href = targetChatPage;
     }
-
-    // Gestion du clic sur le bouton d'acceptation
-    const acceptBtn = document.getElementById('acceptBtn');
-    if (acceptBtn) {
-        acceptBtn.addEventListener('click', function() {
-            // Sauvegarde du consentement pour la session courante
-            sessionStorage.setItem('monsieur_mi_consent', 'true');
-            // Redirection vers le chatbot
-            window.location.href = targetChatPage;
-        });
+    
+    // === GESTION DES LANGUES ===
+    const btnFr = document.getElementById('btnFr');
+    const btnEn = document.getElementById('btnEn');
+    const legalFr = document.getElementById('legalFr');
+    const legalEn = document.getElementById('legalEn');
+    const introFr = document.getElementById('introFr');
+    const introEn = document.getElementById('introEn');
+    
+    function setLanguage(lang) {
+        if (lang === 'fr') {
+            legalFr.style.display = 'block';
+            legalEn.style.display = 'none';
+            introFr.style.display = 'block';
+            introEn.style.display = 'none';
+            btnFr.classList.add('active');
+            btnEn.classList.remove('active');
+        } else {
+            legalFr.style.display = 'none';
+            legalEn.style.display = 'block';
+            introFr.style.display = 'none';
+            introEn.style.display = 'block';
+            btnEn.classList.add('active');
+            btnFr.classList.remove('active');
+        }
     }
+    
+    btnFr.addEventListener('click', () => setLanguage('fr'));
+    btnEn.addEventListener('click', () => setLanguage('en'));
+    
+    // === ACCEPTATION ===
+    const acceptBtn = document.getElementById('acceptBtn');
+    acceptBtn.addEventListener('click', function() {
+        sessionStorage.setItem('monsieur_mi_consent', 'true');
+        window.location.href = targetChatPage;
+    });
 </script>
 </body>
 </html>
