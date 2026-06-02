@@ -1,405 +1,60 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monsieur Mi — Conditions d'accès</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: linear-gradient(135deg, #1e1a1f 0%, #2a2429 100%);
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-        .card {
-            max-width: 1000px;
-            width: 100%;
-            background: rgba(25, 20, 23, 0.88);
-            backdrop-filter: blur(2px);
-            border-radius: 2rem;
-            padding: 2rem;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(230, 200, 180, 0.1);
-            border: 1px solid rgba(210, 180, 140, 0.25);
-        }
-        .hat {
-            font-size: 4rem;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-        h1 {
-            font-size: 2.4rem;
-            font-weight: 500;
-            letter-spacing: -0.01em;
-            text-align: center;
-            background: linear-gradient(120deg, #f5e7d9, #e2cbb5);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        .sub {
-            text-align: center;
-            color: #bfa98e;
-            font-size: 0.85rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px dashed #4f3e33;
-            display: inline-block;
-            width: auto;
-            margin-left: auto;
-            margin-right: auto;
-            padding-bottom: 0.5rem;
-        }
-        
-        /* Onglets bilingues */
-        .lang-tabs {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .lang-btn {
-            background: #2f2a27;
-            border: 1px solid #b48c54;
-            color: #ecd9c6;
-            padding: 0.3rem 1rem;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-        .lang-btn.active {
-            background: #b48c54;
-            color: #1e1a1f;
-            border-color: #b48c54;
-        }
-        .lang-btn:hover {
-            background: #3e3530;
-        }
-        
-        .legal-wrapper {
-            max-height: 380px;
-            overflow-y: auto;
-            padding-right: 0.5rem;
-            margin-bottom: 1.5rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 1.2rem;
-            padding: 1rem;
-            border: 1px solid rgba(210, 180, 140, 0.2);
-        }
-        .legal-text {
-            font-size: 0.85rem;
-            line-height: 1.5;
-            color: #e2d4c6;
-        }
-        .legal-text strong, .legal-text h3 {
-            color: #e7cba5;
-        }
-        .legal-text h3 {
-            font-size: 1rem;
-            margin: 1rem 0 0.3rem 0;
-            font-weight: 500;
-        }
-        .legal-text p {
-            margin-bottom: 0.75rem;
-        }
-        .legal-fr, .legal-en {
-            transition: display 0.2s;
-        }
-        .legal-fr.hide, .legal-en.hide {
-            display: none;
-        }
-        
-        /* Message d'âge - NOUVEAU */
-        .age-warning {
-            background: rgba(180, 80, 60, 0.25);
-            border-radius: 1rem;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1.5rem;
-            border-left: 3px solid #d99e6b;
-            text-align: center;
-            font-weight: bold;
-        }
-        .age-fr {
-            color: #ffcc88;
-            font-size: 0.95rem;
-        }
-        .age-en {
-            color: #ffcc88;
-            font-size: 0.9rem;
-        }
-        
-        .intro-message {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 1rem;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1.5rem;
-            border-left: 3px solid #c7a56b;
-        }
-        .intro-fr, .intro-en {
-            font-size: 0.9rem;
-        }
-        .intro-fr {
-            color: #ecd9c6;
-            margin-bottom: 0.3rem;
-        }
-        .intro-en {
-            color: #d1bfae;
-            font-size: 0.85rem;
-        }
-        
-        /* Boutons groupés - NOUVEAU */
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin: 1rem 0 0.5rem;
-            flex-wrap: wrap;
-        }
-        .btn-accept {
-            display: inline-block;
-            padding: 0.9rem 2rem;
-            background: #0d3c14;
-            color: #fef3e4;
-            text-decoration: none;
-            font-weight: 600;
-            border-radius: 60px;
-            font-size: 1.1rem;
-            border: 1px solid #b48c54;
-            transition: all 0.25s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            letter-spacing: 0.5px;
-            cursor: pointer;
-        }
-        .btn-accept:hover {
-            background: #1a5a24;
-            border-color: #dcb179;
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-        }
-        .btn-refuse {
-            display: inline-block;
-            padding: 0.9rem 2rem;
-            background: #4a2a2a;
-            color: #fef3e4;
-            text-decoration: none;
-            font-weight: 600;
-            border-radius: 60px;
-            font-size: 1.1rem;
-            border: 1px solid #b45454;
-            transition: all 0.25s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            letter-spacing: 0.5px;
-            cursor: pointer;
-        }
-        .btn-refuse:hover {
-            background: #6b3a3a;
-            border-color: #cc6666;
-            transform: scale(1.02);
-        }
-        .footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #9b8a78;
-            margin-top: 1.5rem;
-            border-top: 1px dashed #4f3e33;
-            padding-top: 1rem;
-            font-weight: 300;
-        }
-        hr {
-            border: none;
-            height: 1px;
-            background: #4a3a2e;
-            margin: 0.6rem 0;
-        }
-        @media (max-width: 700px) {
-            .card { padding: 1.5rem; }
-            h1 { font-size: 1.9rem; }
-            .legal-wrapper { max-height: 350px; }
-        }
-    </style>
-</head>
-<body>
-<div class="card">
-    <div class="hat">🎩</div>
-    <h1>Monsieur Mi</h1>
-    <div style="text-align: center;">
-        <div class="sub">— esprit local / local spirit —</div>
-    </div>
+# 🎩 Monsieur Mi — IntelligenceAlly
 
-    <!-- Sélecteur de langue -->
-    <div class="lang-tabs">
-        <button class="lang-btn active" id="btnFr">🇫🇷 Français</button>
-        <button class="lang-btn" id="btnEn">🇬🇧 English</button>
-    </div>
+Chatbot IA local, expérimental et non censuré, hébergé à Mirabel (Québec).
 
-    <!-- NOUVEAU : Message d'avertissement âge 18+ -->
-    <div class="age-warning">
-        <div class="age-fr" id="ageFr">
-            🔞 ACCÈS STRICTEMENT RÉSERVÉ AUX PERSONNES ÂGÉES DE 18 ANS ET PLUS 🔞<br>
-            En acceptant, vous confirmez avoir l'âge de la majorité dans votre juridiction.
-        </div>
-        <div class="age-en" id="ageEn" style="display: none;">
-            🔞 STRICTLY FOR INDIVIDUALS AGED 18 AND OLDER 🔞<br>
-            By accepting, you confirm you have reached the age of majority in your jurisdiction.
-        </div>
-    </div>
+> 🔞 **Accès strictement réservé aux personnes âgées de 18 ans et plus.**
 
-    <!-- Message d'intro bilingue -->
-    <div class="intro-message">
-        <div class="intro-fr" id="introFr">
-            ✦ Monsieur Mi est un automate local, non censuré, expérimental.<br>
-            Avant de lui parler, vous devez accepter les conditions légales ci-dessous.
-        </div>
-        <div class="intro-en" id="introEn" style="display: none;">
-            ✦ Monsieur Mi is a local, uncensored, experimental AI.<br>
-            Before speaking with him, you must accept the legal terms below.
-        </div>
-    </div>
+---
 
-    <!-- Zone juridique complète BILINGUE (avec clause âge ajoutée) -->
-    <div class="legal-wrapper">
-        <!-- Version française -->
-        <div class="legal-text legal-fr" id="legalFr">
-            <strong>CONDITIONS D'UTILISATION ET EXCLUSION DE RESPONSABILITÉ</strong><br><br>
+## 🔗 Lien vers le site
 
-            <strong>1. Acceptation des conditions</strong><br>
-            En cliquant sur « J'accepte », vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes conditions. Si vous n'acceptez pas ces règles, vous devez quitter ce site immédiatement.<br><br>
+👉 [Cliquez ici pour accéder à Monsieur Mi](https://votre-nom-utilisateur.github.io/votre-depot/)
 
-            <strong>2. Limite d'âge — 18 ANS ET PLUS</strong><br>
-            Ce service est strictement réservé aux personnes âgées de 18 ans et plus. En acceptant ces conditions, vous confirmez avoir l'âge de la majorité dans votre juridiction. Les mineurs n'ont pas le droit d'utiliser ce service.<br><br>
+*(remplacez l’URL par la vraie adresse de votre GitHub Pages)*
 
-            <strong>3. Nature du service et absence de garantie</strong><br>
-            Ce service de clavardage automatisé (chatbot) est basé sur un modèle d'intelligence artificielle expérimental et non censuré.<br>
-            — <strong>Divertissement uniquement</strong> : Ce robot est fourni exclusivement à des fins de divertissement et de recherche technologique.<br>
-            — <strong>Erreurs et hallucinations</strong> : L'intelligence artificielle peut générer des réponses fausses, inexactes, trompeuses, offensantes, inappropriées ou diffamatoires. L'exploitant du site ne valide pas le contenu généré par la machine.<br>
-            — <strong>Aucun conseil professionnel</strong> : Les réponses ne constituent en aucun cas des conseils médicaux, juridiques, financiers, psychologiques ou professionnels. Ne prenez aucune décision basée sur les propos du robot.<br><br>
+---
 
-            <strong>4. Limitation stricte de responsabilité</strong><br>
-            En vertu des lois applicables (notamment la province de Québec et le Canada), l'exploitant de ce site ne pourra en aucun cas être tenu responsable de tout dommage direct, indirect, accessoire ou moral (incluant, mais sans s'y limiter, la perte de données, les pertes financières ou les atteintes à la réputation) découlant de l'utilisation de ce chatbot ou de la confiance accordée à ses réponses. Vous utilisez ce service entièrement à vos propres risques.<br><br>
+## ⚠️ Avertissement légal
 
-            <strong>5. Obligations de l'utilisateur</strong><br>
-            En utilisant ce service, vous vous engagez à :<br>
-            — Ne pas tenter de forcer le robot à générer du contenu illégal (haine, violence, pédocriminalité, fabrication d'armes, cyberattaques).<br>
-            — Ne pas diffuser, publier ou partager publiquement les réponses générées par le robot si celles-ci portent atteinte aux droits d'autrui ou violent la loi.<br><br>
+Ce service est fourni **uniquement à des fins de divertissement et de recherche technologique**.
 
-            <strong>6. Protection de la vie privée et confidentialité</strong><br>
-            — <strong>Ne partagez aucune donnée personnelle</strong> : Vous ne devez saisir aucune information confidentielle, nominative ou sensible (nom, adresse, numéro d'assurance sociale, données bancaires, secrets commerciaux) dans le clavardage.<br>
-            — <strong>Enregistrement des conversations</strong> : Les conversations peuvent être enregistrées pour des raisons techniques ou de maintenance du serveur. L'exploitant ne peut garantir la confidentialité absolue des données saisies.<br><br>
+- L’IA peut générer des réponses **fausses, inexactes ou inappropriées**
+- Aucun conseil professionnel (médical, juridique, financier) n’est délivré
+- L’utilisateur est seul responsable de l’usage du chatbot
+- Juridiction : **Mirabel, Québec, Canada**
 
-            <strong>7. Droit applicable</strong><br>
-            Les présentes conditions sont régies et interprétées conformément aux lois de la province de Québec et aux lois du Canada qui s'y appliquent. Tout litige relatif à l'utilisation de ce site sera soumis à la compétence exclusive des tribunaux du district judiciaire de Terrebonne (Mirabel, Québec).
-        </div>
+📜 Les conditions complètes sont à lire sur la page d’accueil.
 
-        <!-- Version anglaise (avec clause âge ajoutée) -->
-        <div class="legal-text legal-en" id="legalEn" style="display: none;">
-            <strong>TERMS OF USE AND DISCLAIMER</strong><br><br>
+---
 
-            <strong>1. Acceptance of Terms</strong><br>
-            By clicking "I accept", you acknowledge that you have read, understood, and accepted these terms in their entirety. If you do not accept these rules, you must leave this site immediately.<br><br>
+## 🛠️ Technologie
 
-            <strong>2. Age Restriction — 18 AND OLDER</strong><br>
-            This service is strictly reserved for individuals aged 18 and older. By accepting these terms, you confirm that you have reached the age of majority in your jurisdiction. Minors are not permitted to use this service.<br><br>
+- Modèle local hébergé sur RTX 3090
+- Serveur personnalisé
+- Interface web légère
 
-            <strong>3. Nature of Service and No Warranty</strong><br>
-            This automated chat service (chatbot) is based on an experimental and uncensored artificial intelligence model.<br>
-            — <strong>Entertainment only</strong> : This robot is provided solely for entertainment and technological research purposes.<br>
-            — <strong>Errors and hallucinations</strong> : The AI may generate false, inaccurate, misleading, offensive, inappropriate, or defamatory responses. The site operator does not validate machine-generated content.<br>
-            — <strong>No professional advice</strong> : Responses do not constitute medical, legal, financial, psychological, or professional advice. Do not make any decisions based on the robot's statements.<br><br>
+---
 
-            <strong>4. Strict Limitation of Liability</strong><br>
-            Under applicable laws (including the province of Quebec and Canada), the site operator shall not be held liable for any direct, indirect, incidental, or moral damages (including, but not limited to, data loss, financial losses, or reputational harm) arising from the use of this chatbot or reliance on its responses. You use this service entirely at your own risk.<br><br>
+## 📁 Fichiers du projet
 
-            <strong>5. User Obligations</strong><br>
-            By using this service, you agree to:<br>
-            — Not attempt to force the robot to generate illegal content (hate, violence, child exploitation, weapon manufacturing, cyberattacks).<br>
-            — Not distribute, publish, or publicly share the robot's responses if they violate others' rights or the law.<br><br>
+| Fichier | Description |
+|---------|-------------|
+| `index.html` | Page d’accueil avec conditions d’utilisation |
+| `IntelligencAllyServerLocal.html` | Interface de discussion avec le chatbot |
 
-            <strong>6. Privacy and Confidentiality</strong><br>
-            — <strong>Do not share personal data</strong> : You must not enter any confidential, identifying, or sensitive information (name, address, social insurance number, banking data, trade secrets) into the chat.<br>
-            — <strong>Conversation logging</strong> : Conversations may be recorded for technical or server maintenance reasons. The operator cannot guarantee absolute confidentiality of entered data.<br><br>
+---
 
-            <strong>7. Applicable Law</strong><br>
-            These terms are governed by and construed in accordance with the laws of the province of Quebec and applicable Canadian laws. Any dispute relating to the use of this site shall be submitted to the exclusive jurisdiction of the courts of the judicial district of Terrebonne (Mirabel, Quebec).
-        </div>
-    </div>
+## 🧠 À propos
 
-    <!-- NOUVEAU : Groupes de boutons (Accepter + Refuser) -->
-    <div class="btn-group">
-        <button id="acceptBtn" class="btn-accept">✅ J'accepte / I accept</button>
-        <button id="refuseBtn" class="btn-refuse">❌ Je refuse / I refuse</button>
-    </div>
-    <div class="footer">
-        🔒 Accès strictement réservé aux 18+ — Hébergé localement, Mirabel, Québec
-    </div>
-</div>
+Monsieur Mi est un valet discret, né entre un fichier GGUF et un prompt écrit à la main.  
+Il parle peu, écoute beaucoup, et répond avec une élégance un peu désuète.
 
-<script>
-    // === CONFIGURATION ===
-    const targetChatPage = "IntelligencAllyServerLocal.html";  // votre page chatbot
-    const refuseRedirectUrl = "https://www.google.com"; // Redirection en cas de refus
-    
-    // Vérifier si l'utilisateur a déjà accepté pendant cette session
-    if (sessionStorage.getItem('monsieur_mi_consent') === 'true') {
-        window.location.href = targetChatPage;
-    }
-    
-    // === GESTION DES LANGUES ===
-    const btnFr = document.getElementById('btnFr');
-    const btnEn = document.getElementById('btnEn');
-    const legalFr = document.getElementById('legalFr');
-    const legalEn = document.getElementById('legalEn');
-    const introFr = document.getElementById('introFr');
-    const introEn = document.getElementById('introEn');
-    const ageFr = document.getElementById('ageFr');
-    const ageEn = document.getElementById('ageEn');
-    
-    function setLanguage(lang) {
-        if (lang === 'fr') {
-            legalFr.style.display = 'block';
-            legalEn.style.display = 'none';
-            introFr.style.display = 'block';
-            introEn.style.display = 'none';
-            ageFr.style.display = 'block';
-            ageEn.style.display = 'none';
-            btnFr.classList.add('active');
-            btnEn.classList.remove('active');
-        } else {
-            legalFr.style.display = 'none';
-            legalEn.style.display = 'block';
-            introFr.style.display = 'none';
-            introEn.style.display = 'block';
-            ageFr.style.display = 'none';
-            ageEn.style.display = 'block';
-            btnEn.classList.add('active');
-            btnFr.classList.remove('active');
-        }
-    }
-    
-    btnFr.addEventListener('click', () => setLanguage('fr'));
-    btnEn.addEventListener('click', () => setLanguage('en'));
-    
-    // === ACCEPTATION ===
-    const acceptBtn = document.getElementById('acceptBtn');
-    acceptBtn.addEventListener('click', function() {
-        sessionStorage.setItem('monsieur_mi_consent', 'true');
-        window.location.href = targetChatPage;
-    });
-    
-    // === REFUS : REDIRECTION HORS DU SITE ===
-    const refuseBtn = document.getElementById('refuseBtn');
-    refuseBtn.addEventListener('click', function() {
-        window.location.href = refuseRedirectUrl;
-    });
-</script>
-</body>
-</html>
+📍 Hébergé à Mirabel, Québec  
+📧 Contact : *(votre email si vous voulez)*
+
+---
+
+## ⚖️ Responsabilité
+
+En accédant à ce site, vous acceptez l’intégralité des conditions d’utilisation.  
+L’exploitant ne pourra être tenu responsable de tout dommage découlant de l’utilisation du chatbot.
