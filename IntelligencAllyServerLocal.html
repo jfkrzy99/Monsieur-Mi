@@ -440,27 +440,36 @@
 
 /* Think block styling */
 .think-block {
-    background: #3a3b43;
+    background: #2e2f38;
     border-left: 3px solid #6b7280;
-    padding: 8px 12px;
+    padding: 6px 12px;
     margin: 6px 0 10px 0;
     border-radius: 6px;
+}
+
+.think-label {
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 0;
+    display: block;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 0;
+}
+.think-label:hover { color: #9ca3af; }
+
+.think-content {
     font-size: 12px;
     color: #9ca3af;
     font-style: italic;
     line-height: 1.4;
-}
-
-.think-block.collapsed {
-    display: none;
-}
-
-.think-label {
-    font-size: 10px;
-    color: #6b7280;
-    margin-bottom: 4px;
+    margin-top: 6px;
     display: block;
-    letter-spacing: 0.5px;
+}
+
+.think-block.collapsed .think-content {
+    display: none;
 }
 
 /* Gestion des blocs de code */
@@ -901,43 +910,41 @@ function getGenParams() {
         // Format le message avec séparation du raisonnement
 function formatMessageContent(content) {
     if (!content) return '';
-    
-    // ===== NETTOYAGE RADICAL DES THINK (même mal formés) =====
-    // Supprime TOUTES les balises think et leur contenu
-    let cleanContent = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
-    // Supprime aussi les think ouverts sans fermeture
-    cleanContent = cleanContent.replace(/<think>[\s\S]*$/gi, '');
-    // Supprime les think vides
-    cleanContent = cleanContent.replace(/<think>\s*<\/think>/gi, '');
-    // =========================================================
-    
+
+    // ===== ÉTAPE 1 : Supprimer le JSON metadata que Qwen génère parfois =====
+    // ex: {"emotion": "joy", "energy_level": 10}
+    let cleaned = content.replace(/^\s*\{[^}]*\}\s*/g, '');
+
     const thinkMode = document.getElementById('thinkToggle')?.checked ?? true;
-    
-    // Si mode OFF, retourne directement le contenu nettoyé
-    if (!thinkMode) {
-        return escapeHtml(cleanContent).replace(/\n/g, '<br>');
-    }
-    
-    // Mode ON : extraire et formater les think
+
+    // ===== ÉTAPE 2 : Extraire les blocs think AVANT de nettoyer =====
     let thinkBlocks = [];
-    let contentWithPlaceholders = cleanContent;
-    
-    // Capturer les think restants (après nettoyage)
+    let contentWithPlaceholders = cleaned;
+
+    // Capturer les think complets
     contentWithPlaceholders = contentWithPlaceholders.replace(/<think>([\s\S]*?)<\/think>/gi, (match, thinkContent) => {
         const index = thinkBlocks.length;
         thinkBlocks.push(thinkContent.trim());
         return `%%THINK_${index}%%`;
     });
-    
-    // Échapper le HTML
+    // Supprimer les think ouverts sans fermeture (streaming en cours)
+    contentWithPlaceholders = contentWithPlaceholders.replace(/<think>[\s\S]*$/gi, '');
+
+    // ===== ÉTAPE 3 : Si mode OFF, supprimer les placeholders et retourner =====
+    if (!thinkMode) {
+        let noThink = contentWithPlaceholders.replace(/%%THINK_\d+%%/g, '').trim();
+        return escapeHtml(noThink).replace(/\n/g, '<br>');
+    }
+
+    // ===== ÉTAPE 4 : Mode ON — formater avec les blocs think =====
     let formatted = escapeHtml(contentWithPlaceholders);
-    
-    // Remplacer les placeholders par les blocs think
+
+    // Remplacer les placeholders par les blocs think affichables
     thinkBlocks.forEach((thinkContent, i) => {
-        formatted = formatted.replace(`%%THINK_${i}%%`, 
-            `<div class="think-block">
-                <div class="think-label">🧠 Réflexion interne de Monsieur Mi :</div>
-                ${escapeHtml(thinkContent)}
+        formatted = formatted.replace(`%%THINK_${i}%%`,
+            `<div class="think-block collapsed">
+                <div class="think-label" onclick="this.parentElement.classList.toggle('collapsed')">🧠 Réflexion interne — cliquer pour afficher/cacher</div>
+                <div class="think-content">${escapeHtml(thinkContent).replace(/\n/g, '<br>')}</div>
             </div>`
         );
     });
@@ -960,7 +967,6 @@ function formatMessageContent(content) {
     
     return finalResult;
 }
-
 
         // ---------- Appel API au serveur (avec streaming supporté) ----------
         async function sendToServer(messages, onToken) {
