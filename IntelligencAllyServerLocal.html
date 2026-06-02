@@ -680,6 +680,14 @@
 
 
 <body>
+
+<script>
+    // Protection : refuse l'accès direct sans acceptation préalable
+    if (sessionStorage.getItem('monsieur_mi_consent') !== 'true') {
+        window.location.href = 'index.html';
+    }
+</script>
+    
 <div class="sidebar">
     <button class="sidebar-toggle" id="sidebarToggle" title="Réduire/Agrandir">◀</button>
     <button class="new-chat-btn" id="newChatBtn">
