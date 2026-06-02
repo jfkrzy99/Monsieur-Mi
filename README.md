@@ -8,7 +8,7 @@ Chatbot IA local, expérimental et non censuré, hébergé à Mirabel (Québec).
 
 ## 🔗 Lien vers le site
 
-👉 [Cliquez ici pour accéder à Monsieur Mi](https://votre-nom-utilisateur.github.io/votre-depot/)
+ 👉 [Cliquez ici pour accéder à Monsieur Mi](https://jfkrzy99.github.io/Monsieur-Mi/)
 
 *(remplacez l’URL par la vraie adresse de votre GitHub Pages)*
 
