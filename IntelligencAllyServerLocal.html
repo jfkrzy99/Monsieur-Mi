@@ -826,6 +826,29 @@
         🔊 Tester
     </button>
 </div>
+    <!-- À AJOUTER DANS LE CHAT-HEADER ou dans le MAIN -->
+<div class="server-announcement" style="
+    background: #0d3c14;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin: 8px 16px;
+    font-size: 12px;
+    border-left: 3px solid #00ffcc;
+">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <span id="serverStatusBadge">🟢</span>
+            <span id="dailyMessageText">Chargement...</span>
+        </div>
+        <button id="refreshAnnouncementBtn" style="
+            background: transparent;
+            border: none;
+            color: #00ffcc;
+            cursor: pointer;
+            font-size: 12px;
+        ">↻</button>
+    </div>
+</div>
     </div>
 </div>
     <script>
