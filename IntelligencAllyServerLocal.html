@@ -1756,11 +1756,15 @@ loadVoices();
 // ========== RÉCUPÉRER LE MESSAGE DU JOUR ==========
 async function fetchPublicStatus() {
     try {
-        const response = await fetch(`${serverBaseUrl}/public/status`);
+        const response = await fetch(`${serverBaseUrl}/public/status`, {
+            headers: {
+                'ngrok-skip-browser-warning': '1'  // ← LA LIGNE MAGIQUE !
+            }
+        });
+        
         if (response.ok) {
             const data = await response.json();
             
-            // Mettre à jour l'affichage
             const statusBadge = document.getElementById('serverStatusBadge');
             const messageText = document.getElementById('dailyMessageText');
             
