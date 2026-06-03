@@ -902,7 +902,7 @@ function disableModelSelection() {
         // Paramètres par défaut
         let currentModel = "josiefied-qwen3-30b";
         let serverBaseUrl = "https://jubilance-generic-thinner.ngrok-free.dev";
-
+        let TTS_SERVER_URL = "https://jubilance-generic-thinner.ngrok-free.dev";
         // ========== AJOUTER DANS LA SECTION "ÉTAT" ==========
         let currentChatId = localStorage.getItem('current_chat_id') || null;
 
@@ -1671,7 +1671,9 @@ let ttsEnabled = false;
 // Charger les voix disponibles depuis le serveur
 async function loadVoices() {
     try {
-        const response = await fetch(`http://192.168.137.5:5005/voices`);
+        const response = await fetch(`${TTS_SERVER_URL}/voices`, {
+            headers: { 'ngrok-skip-browser-warning': '1' }
+        });
         if (response.ok) {
             const voices = await response.json();
             const voiceSelect = document.getElementById('voiceSelect');
@@ -1679,7 +1681,6 @@ async function loadVoices() {
             
             voices.forEach(voice => {
                 const option = document.createElement('option');
-                // ⚠️ IMPORTANT: on stocke le filename, pas le chemin complet
                 option.value = voice.filename;
                 option.textContent = voice.isDefault ? `🎤 ${voice.name}` : voice.name;
                 voiceSelect.appendChild(option);
@@ -1709,8 +1710,9 @@ async function speakText(text) {
         
         console.log("🎤 Voix sélectionnée:", selectedVoice);
         
-        const response = await fetch(`http://192.168.137.5:5005/speak`, {
+        const response = await fetch(`${TTS_SERVER_URL}/speak`, {
             method: 'POST',
+            headers: { 'ngrok-skip-browser-warning': '1' },
             body: formData
         });
         
