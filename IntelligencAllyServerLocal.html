@@ -1753,7 +1753,47 @@ loadVoices();
 
 // Optionnel : Lire automatiquement les réponses de l'assistant
 // À ajouter dans sendMessage() après avoir reçu la réponse
+// ========== RÉCUPÉRER LE MESSAGE DU JOUR ==========
+async function fetchPublicStatus() {
+    try {
+        const response = await fetch(`${serverBaseUrl}/public/status`);
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Mettre à jour l'affichage
+            const statusBadge = document.getElementById('serverStatusBadge');
+            const messageText = document.getElementById('dailyMessageText');
+            
+            if (statusBadge) {
+                if (data.server_status.includes("ALLUMÉ") || data.server_status.includes("ON")) {
+                    statusBadge.innerHTML = "🟢";
+                } else {
+                    statusBadge.innerHTML = "🔴";
+                }
+            }
+            
+            if (messageText) {
+                messageText.innerHTML = data.daily_message;
+            }
+            
+            console.log("📢 Message du jour:", data.daily_message);
+        }
+    } catch(e) {
+        console.log("Impossible de récupérer l'annonce:", e);
+        const messageText = document.getElementById('dailyMessageText');
+        if (messageText) messageText.innerHTML = "⚠️ Serveur injoignable";
+    }
+}
 
+// Rafraîchir toutes les 30 secondes
+setInterval(fetchPublicStatus, 30000);
+fetchPublicStatus();
+
+// Bouton refresh manuel
+const refreshBtn = document.getElementById('refreshAnnouncementBtn');
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', fetchPublicStatus);
+}
     </script>
 </body>
     <!-- Moteur de couleur forcé pour GitHub Pages -->
