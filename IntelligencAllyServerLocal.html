@@ -1710,11 +1710,11 @@ async function speakText(text) {
         
         console.log("🎤 Voix sélectionnée:", selectedVoice);
         
-        const response = await fetch(`${TTS_SERVER_URL}/speak`, {
-            method: 'POST',
-            headers: { 'ngrok-skip-browser-warning': '1' },
-            body: formData
-        });
+     const response = await fetch(`${TTS_SERVER_URL}/tts`, {
+        method: 'POST',
+        headers: { 'ngrok-skip-browser-warning': '1' },
+        body: formData
+    });
         
         if (response.ok) {
             const audioBlob = await response.blob();
