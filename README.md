@@ -1,6 +1,6 @@
-# 🎩 Monsieur Mi — IntelligenceAlly
+# 🎩 Mi — IntelligenceAlly
 
-Chatbot IA local, expérimental et non censuré, hébergé à Mirabel (Québec).
+Chatbot IA local, expérimental et non censuré, hébergé au (Québec).
 
 > 🔞 **Accès strictement réservé aux personnes âgées de 18 ans et plus.**
 
@@ -10,7 +10,7 @@ Chatbot IA local, expérimental et non censuré, hébergé à Mirabel (Québec).
 
  👉 [Cliquez ici pour accéder à Monsieur Mi](https://jfkrzy99.github.io/Monsieur-Mi/)
 
-*(remplacez l’URL par la vraie adresse de votre GitHub Pages)*
+
 
 ---
 
@@ -46,7 +46,7 @@ Ce service est fourni **uniquement à des fins de divertissement et de recherche
 
 ## 🧠 À propos
 
-Monsieur Mi est un valet discret, né entre un fichier GGUF et un prompt écrit à la main.  
+Mi est un valet discret, né entre un fichier GGUF et un prompt écrit à la main.  
 Il parle peu, écoute beaucoup, et répond avec une élégance un peu désuète.
 
 📍 Hébergé à Mirabel, Québec  
